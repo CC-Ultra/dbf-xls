@@ -22,6 +22,18 @@ public class Main
 	 else
 		 return false;
 	 }
+ static int[] userInputArr()
+	{
+	 int result[];
+	 Scanner scan= new Scanner(System.in);
+	 System.out.print("Сколько записей из таблицы взять? (не превышай общее число записей)\nn=");
+	 int l= scan.nextInt();
+	 result= new int[l];
+	 System.out.println("Введи список записей через пробел:");
+	 for(int i=0; i<l; i++)
+		 result[i]= scan.nextInt();
+	 return result;
+	 }
  static void iteration(String[] fileList) throws IOException
 	{
 	 Scanner scan = new Scanner(System.in);
@@ -75,11 +87,13 @@ public class Main
 	 String fileList[]= getDirFilesList(fileadr);
 	 boolean iterate=true;
 
+/*/
 	 while(iterate)
 		{
 		 iteration(fileList);
 		 iterate=userChoice();
 		 }
+/*/
 //	 Headers headers[]= new Headers[fileList.length];
 //	 ArrayList<HashSet<String> > statistic= new ArrayList<>();
 //	 DbfExtractor extractor= new DbfExtractor(fileList[6] );
