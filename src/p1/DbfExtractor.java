@@ -17,6 +17,7 @@ public class DbfExtractor
 	 Headers headers;
 	 int n;
 
+	 @SuppressWarnings("deprecation")
 	 public DbfExtractor(String _filepath)
 		{
 		 filepath=_filepath;
@@ -75,34 +76,33 @@ public class DbfExtractor
 			 result= (Date)record[position];
 		 return result;
 		 }
-	 public void printRecord(int index) throws IOException
+	 public void printRecord(XlsWriter xlsWriter, int dbfIndex, int xlsIndex) throws IOException
 		{
-		 Object record[]= extractRecord(index);
+		 Object record[]= extractRecord(dbfIndex);
 		 if(record==null)
 			{
-			 System.out.println("Не удалось прочесть запись. Внезапный конец файла");
+			 System.out.println("Не удалось прочесть запись "+ dbfIndex +". Внезапный конец файла");
 			 return;
 			 }
-		 System.out.println("Запись "+ index +":");
-		 for(int i=0; i<record.length; i++)
+		 for(int j=0; j<record.length; j++)
 			{
-			 System.out.print(headers.fields[i].getName() +": ");
-			 char fieldType= (char)headers.fields[i].getType().getCode();
+			 char fieldType= (char)headers.fields[j].getType().getCode();
 			 switch(fieldType)
 				{
 				 case 'C':
-					 System.out.println(extractFieldAs_String(record,i) );
+					 xlsWriter.writeAs_String(extractFieldAs_String(record,j).trim(), xlsIndex, j);
 					 break;
 				 case 'N':
-					 System.out.println(extractFieldAs_double(record,i) );
+					 xlsWriter.writeAs_double(extractFieldAs_double(record,j), xlsIndex, j);
 					 break;
 				 case 'D':
-					 System.out.println(extractFieldAs_Date(record,i) );
+					 Date data= extractFieldAs_Date(record,j);
+					 if(data!=null)
+						 xlsWriter.writeAs_Date(data, xlsIndex, j);
 					 break;
 				 default:
-					 System.out.println(record[i].toString() );
+					 xlsWriter.writeAs_String(record[j].toString(), dbfIndex, j);
 				 }
 			 }
-		 System.out.println();
 		 }
 	 }

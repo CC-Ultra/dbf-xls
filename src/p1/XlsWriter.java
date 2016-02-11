@@ -139,6 +139,12 @@ public class XlsWriter
 		 cell.setCellValue(data);
 		 sheet.autoSizeColumn(j);
 		 }
+	 public void close() throws IOException
+		{
+//		 xlsDoc.write(new FileOutputStream("c:\\c123\\dbf\\Result.xls") );
+		 xlsDoc.write(new FileOutputStream("Result.xls") );
+		 xlsDoc.close();
+		 }
 
 	 @SuppressWarnings("deprecation")
 	 void test() throws IOException

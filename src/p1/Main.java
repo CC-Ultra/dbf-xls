@@ -11,44 +11,6 @@ public class Main
 	 Scanner scan = new Scanner(System.in);
 	 return scan.next();
 	 }
- static boolean userChoice()
-	{
-	 System.out.println("Еще раз? (Y/N)");
-	 if(Objects.equals(getch().toLowerCase(),"y") )
-		{
-		 System.out.println("\n*************************************\n");
-		 return true;
-		 }
-	 else
-		 return false;
-	 }
- static int[] userInputArr()
-	{
-	 int result[];
-	 Scanner scan= new Scanner(System.in);
-	 System.out.print("Сколько записей из таблицы взять? (не превышай общее число записей)\nn=");
-	 int l= scan.nextInt();
-	 result= new int[l];
-	 System.out.println("Введи список записей через пробел:");
-	 for(int i=0; i<l; i++)
-		 result[i]= scan.nextInt();
-	 return result;
-	 }
- static void iteration(String[] fileList) throws IOException
-	{
-	 Scanner scan = new Scanner(System.in);
-	 System.out.println("Итак, в нашем распоряжении такие файлы:");
-	 for(int i=0; i<fileList.length; i++)
-		 System.out.println( (i+1) +". "+ fileList[i] );
-	 System.out.print("\nВыбери из какого читать (введи его номер)\nn=");
-	 int fileNumber= scan.nextInt()-1;
-	 DbfExtractor extractor= new DbfExtractor(fileList[fileNumber] );
-	 System.out.print("В файле "+ extractor.n +" записей. Какую напечатать? (0.."+ (extractor.n-1) +")\ni=");
-	 int index= scan.nextInt();
-	 System.out.println();
-	 extractor.printRecord(index);
-	 }
-
  static String[] getDirFilesList()
 	{
 	 return getDirFilesList("");
@@ -84,16 +46,31 @@ public class Main
 	{
 //	 String fileadr="Исходники\\exp";
 	 String fileadr="";
-	 String fileList[]= getDirFilesList(fileadr);
-	 boolean iterate=true;
+	 Scanner scan = new Scanner(System.in);
 
-/*/
-	 while(iterate)
-		{
-		 iteration(fileList);
-		 iterate=userChoice();
-		 }
-/*/
+	 String fileList[]= getDirFilesList(fileadr);
+	 System.out.println("Итак, в нашем распоряжении такие файлы:");
+	 for(int i=0; i<fileList.length; i++)
+		 System.out.println( (i+1) +". "+ fileList[i] );
+	 System.out.print("\nВыбери из какого читать (введи его номер)\n№=");
+	 int fileNumber= scan.nextInt()-1;
+	 DbfExtractor extractor= new DbfExtractor(fileList[fileNumber] );
+	 System.out.println("В файле "+ extractor.n +" записей");
+	 System.out.print("Сколько записей из таблицы взять? (не превышай общее число записей)\nn=");
+	 int n= scan.nextInt();
+	 int records[]= new int[n];
+	 System.out.println("Введи список записей через пробел:");
+	 for(int i=0; i<n; i++)
+		 records[i]= scan.nextInt();
+	 System.out.println("\nПишу в файл");
+	 XlsWriter xlsWriter= new XlsWriter(extractor.headers.toStringNamesArr(), n);
+	 for(int i=0; i<n; i++)
+		 extractor.printRecord(xlsWriter,records[i], i);
+	 xlsWriter.close();
+
+	 System.out.println("Есть, готово. Введи что-то для выхода из программы или просто закрой ее");
+	 getch();
+
 //	 Headers headers[]= new Headers[fileList.length];
 //	 ArrayList<HashSet<String> > statistic= new ArrayList<>();
 //	 DbfExtractor extractor= new DbfExtractor(fileList[6] );
