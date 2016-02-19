@@ -41,6 +41,12 @@ public class Main
 	 result= filter.toArray(new String[filter.size() ] );
 	 return result;
 	 }
+ static String dbfToXlsPath(String dbfPath)
+	{
+	 String result;
+	 result= dbfPath.substring(0, dbfPath.lastIndexOf('.') ) +".xls";
+	 return result;
+	 }
 
  public static void main(String[] args) throws IOException
 	{
@@ -48,28 +54,100 @@ public class Main
 	 String fileadr="";
 	 Scanner scan = new Scanner(System.in);
 
+	 if(args.length!=0)
+		{
+		 fileadr= args[0];
+		 DbfExtractor extractor= new DbfExtractor(fileadr);
+		 fileadr= dbfToXlsPath(fileadr);
+		 XlsWriter xlsWriter= new XlsWriter(extractor.headers.toStringNamesArr(), extractor.n, fileadr);
+		 System.out.println("\nПишу в файл");
+		 extractor.printAll(xlsWriter);
+		 xlsWriter.close();
+		 System.out.println("Готово");
+		 return;
+		 }
+
 	 String fileList[]= getDirFilesList(fileadr);
+	 if(fileList.length==0)
+		{
+		 System.out.println(".dbf файлы не найдены");
+		 return;
+		 }
+
 	 System.out.println("Итак, в нашем распоряжении такие файлы:");
 	 for(int i=0; i<fileList.length; i++)
 		 System.out.println( (i+1) +". "+ fileList[i] );
-	 System.out.print("\nВыбери из какого читать (введи его номер)\n№=");
-	 int fileNumber= scan.nextInt()-1;
-	 DbfExtractor extractor= new DbfExtractor(fileList[fileNumber] );
-	 System.out.println("В файле "+ extractor.n +" записей");
-	 System.out.print("Сколько записей из таблицы взять? (не превышай общее число записей)\nn=");
-	 int n= scan.nextInt();
-	 int records[]= new int[n];
-	 System.out.println("Введи список записей через пробел:");
-	 for(int i=0; i<n; i++)
-		 records[i]= scan.nextInt();
-	 System.out.println("\nПишу в файл");
-	 XlsWriter xlsWriter= new XlsWriter(extractor.headers.toStringNamesArr(), n);
-	 for(int i=0; i<n; i++)
-		 extractor.printRecord(xlsWriter,records[i], i);
-	 xlsWriter.close();
+	 boolean correctInput=false;
+	 int n=0;
+	 while(!correctInput)
+		{
+		 System.out.println("\nВыберите сколько из них читать (или 0, если все):");
+		 try
+			{
+			 n= scan.nextInt();
+			 if(n>=0 && n<=fileList.length)
+				 correctInput=true;
+			 else
+				 throw new Exception();
+			 }
+		 catch(Exception inputErr)
+			{
+			 scan.nextLine();
+			 System.out.println("Некорректный ввод. Еще раз");
+			 }
+		 }
 
-	 System.out.println("Есть, готово. Введи что-то для выхода из программы или просто закрой ее");
-	 getch();
+	 if(n==0)
+		{
+		 System.out.println("\nПишу в файлы...");
+		 n=fileList.length;
+		 for(int i=0; i<n; i++)
+			{
+			 fileadr=fileList[i];
+			 DbfExtractor extractor= new DbfExtractor(fileadr);
+			 fileadr= dbfToXlsPath(fileadr);
+			 XlsWriter xlsWriter= new XlsWriter(extractor.headers.toStringNamesArr(), extractor.n, fileadr);
+			 System.out.println(fileadr);
+			 extractor.printAll(xlsWriter);
+			 xlsWriter.close();
+			 }
+		 System.out.println("Готово");
+		 return;
+		 }
+
+	 int fileNums[]= new int[n];
+	 correctInput=false;
+	 while(!correctInput)
+		{
+		 System.out.println("\nВведите список файлов через пробел:");
+		 try
+			{
+			 for(int i=0; i<n; i++)
+				{
+				 fileNums[i]= scan.nextInt()-1;
+				 if( (fileNums[i]<0) || (fileNums[i] >= fileList.length) )
+					 throw new Exception();
+				 }
+			 correctInput=true;
+			 }
+		 catch(Exception inputErr)
+			{
+			 scan.nextLine();
+			 System.out.println("Некорректный ввод. Еще раз");
+			 }
+		 }
+	 System.out.println("\nПишу в файлы...");
+	 for(int i=0; i<n; i++)
+		{
+		 fileadr=fileList[fileNums[i] ];
+		 DbfExtractor extractor= new DbfExtractor(fileadr);
+		 fileadr= dbfToXlsPath(fileadr);
+		 XlsWriter xlsWriter= new XlsWriter(extractor.headers.toStringNamesArr(), extractor.n, fileadr);
+		 System.out.println(fileadr);
+		 extractor.printAll(xlsWriter);
+		 xlsWriter.close();
+		 }
+	 System.out.println("Готово");
 
 //	 Headers headers[]= new Headers[fileList.length];
 //	 ArrayList<HashSet<String> > statistic= new ArrayList<>();

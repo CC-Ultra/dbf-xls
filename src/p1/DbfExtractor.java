@@ -49,7 +49,7 @@ public class DbfExtractor
 		 }
 	 public double extractFieldAs_double(Object[] record,int position)
 		{
-		 double result=0;
+		 double result=-50000000d;
 		 if(record[position]!=null)
 			 result= (double)record[position];
 		 return result;
@@ -76,14 +76,8 @@ public class DbfExtractor
 			 result= (Date)record[position];
 		 return result;
 		 }
-	 public void printRecord(XlsWriter xlsWriter, int dbfIndex, int xlsIndex) throws IOException
+	 public void printRecord(XlsWriter xlsWriter, Object[] record, int xlsIndex) throws IOException
 		{
-		 Object record[]= extractRecord(dbfIndex);
-		 if(record==null)
-			{
-			 System.out.println("Не удалось прочесть запись "+ dbfIndex +". Внезапный конец файла");
-			 return;
-			 }
 		 for(int j=0; j<record.length; j++)
 			{
 			 char fieldType= (char)headers.fields[j].getType().getCode();
@@ -101,8 +95,43 @@ public class DbfExtractor
 						 xlsWriter.writeAs_Date(data, xlsIndex, j);
 					 break;
 				 default:
-					 xlsWriter.writeAs_String(record[j].toString(), dbfIndex, j);
+					 xlsWriter.writeAs_String(record[j].toString(), xlsIndex, j);
 				 }
+			 }
+		 }
+	 public void printRecordByIndex(XlsWriter xlsWriter, int dbfIndex, int xlsIndex) throws IOException
+		{
+		 Object record[]= extractRecord(dbfIndex);
+		 if(record==null)
+			{
+			 System.out.println("Не удалось прочесть запись "+ dbfIndex +". Внезапный конец файла. Возможно файл поврежден");
+			 return;
+			 }
+		 printRecord(xlsWriter,record,xlsIndex);
+		 }
+	 public void printN(XlsWriter xlsWriter,int nRecords) throws IOException
+		{
+		 if(nRecords>=n)
+			{
+			 printAll(xlsWriter);
+			 return;
+			 }
+		 for(int i=0; i<nRecords; i++)
+			 printRecordByIndex(xlsWriter,i,i);
+		 }
+	 public void printAll(XlsWriter xlsWriter) throws IOException
+		{
+		 DBFReader dbfIn= new DBFReader(new FileInputStream(filepath) );
+		 for(int i=0; i<n; i++)
+			{
+			 Object record[]= dbfIn.nextRecord();
+			 if(record==null)
+				{
+				 System.out.println("Не удалось прочесть запись "+ i +". Внезапный конец файла. Возможно файл поврежден");
+				 xlsWriter.close();
+				 return;
+				 }
+			 printRecord(xlsWriter,record,i);
 			 }
 		 }
 	 }

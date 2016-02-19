@@ -14,17 +14,20 @@ public class XlsWriter
 	{
 	 HSSFWorkbook xlsDoc;
 	 Sheet sheet;
+	 String xlsFilePath;
 
-	 public XlsWriter()
+	 public XlsWriter(String path)
 		{
 		 xlsDoc= new HSSFWorkbook();
 		 sheet= xlsDoc.createSheet("Test");
+		 xlsFilePath=path;
 		 }
-	 public XlsWriter(String[] headers,int n)
+	 public XlsWriter(String[] headers,int n,String path)
 		{
 		 xlsDoc= new HSSFWorkbook();
 		 sheet= xlsDoc.createSheet("Test");
 		 init(headers,n);
+		 xlsFilePath=path;
 		 }
 	 void init(String[] headers,int n)
 		{
@@ -126,7 +129,10 @@ public class XlsWriter
 		{
 		 Row row= sheet.getRow(i+1);
 		 Cell cell= row.getCell(j);
-		 cell.setCellValue(data);
+		 if(data==-50000000d)
+			 cell.setCellValue( (String)null);
+		 else
+			 cell.setCellValue(data);
 		 sheet.autoSizeColumn(j);
 		 }
 	 public void writeAs_Date(Date data,int i,int j)
@@ -142,7 +148,7 @@ public class XlsWriter
 	 public void close() throws IOException
 		{
 //		 xlsDoc.write(new FileOutputStream("c:\\c123\\dbf\\Result.xls") );
-		 xlsDoc.write(new FileOutputStream("Result.xls") );
+		 xlsDoc.write(new FileOutputStream(xlsFilePath) );
 		 xlsDoc.close();
 		 }
 
@@ -181,13 +187,12 @@ public class XlsWriter
 //		 setBorder(xlsDoc,cell[2],dateStyle, 5,6,6,6);
 		 cell[2].setCellValue(new Date(114,9,21) );
 /*/
-		 xlsDoc.write(new FileOutputStream("c:\\c123\\dbf\\test.xls") );
-		 xlsDoc.close();
+		 close();
 		 }
 
 	 public static void main(String[] args) throws IOException
 		{
-		 XlsWriter x= new XlsWriter();
+		 XlsWriter x= new XlsWriter("c:\\c123\\dbf\\test.xls");
 		 String headers[]= {"abc", "def", "12333", "4", "678905"};
 		 x.init(headers, 5);
 		 x.test();
