@@ -1,5 +1,6 @@
 package p1;
 
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 
@@ -19,18 +20,44 @@ public class XlsWriter
 	 public XlsWriter(String path)
 		{
 		 xlsDoc= new HSSFWorkbook();
-		 sheet= xlsDoc.createSheet("Test");
+		 sheet= xlsDoc.createSheet("Лист 1");
 		 xlsFilePath=path;
 		 }
 	 public XlsWriter(String[] headers,int n,String path)
 		{
 		 xlsDoc= new HSSFWorkbook();
-		 sheet= xlsDoc.createSheet("Test");
+		 sheet= xlsDoc.createSheet("Лист 1");
 		 init(headers,n);
 		 xlsFilePath=path;
 		 }
+
 	 void init(String[] headers,int n)
 		{
+		 HSSFCellStyle headerLeftCellStyle= xlsDoc.createCellStyle();
+		 HSSFCellStyle headerRightCellStyle= xlsDoc.createCellStyle();
+		 HSSFCellStyle headerCellStyle= xlsDoc.createCellStyle();
+		 HSSFCellStyle leftCellStyle= xlsDoc.createCellStyle();
+		 HSSFCellStyle rightCellStyle= xlsDoc.createCellStyle();
+		 HSSFCellStyle leftBottomCellStyle= xlsDoc.createCellStyle();
+		 HSSFCellStyle rightBottomCellStyle= xlsDoc.createCellStyle();
+		 HSSFCellStyle bottomCellStyle= xlsDoc.createCellStyle();
+		 HSSFCellStyle centerCellStyle= xlsDoc.createCellStyle();
+		 setBorder(headerLeftCellStyle, 6,1,6,2);
+		 setBorder(headerRightCellStyle, 1,6,6,2);
+		 setBorder(headerCellStyle, 1,1,6,2);
+		 setBorder(leftCellStyle, 6,1,-1,1);
+		 setBorder(rightCellStyle, 1,6,-1,1);
+		 setBorder(leftBottomCellStyle, 6,1,-1,6);
+		 setBorder(rightBottomCellStyle, 1,6,-1,6);
+		 setBorder(bottomCellStyle, 1,1,-1,6);
+		 setBorder(centerCellStyle, 1,1,-1,1);
+		 headerLeftCellStyle.setFillForegroundColor(IndexedColors.YELLOW.index);
+		 headerLeftCellStyle.setFillPattern(CellStyle.SOLID_FOREGROUND);
+		 headerRightCellStyle.setFillForegroundColor(IndexedColors.YELLOW.index);
+		 headerRightCellStyle.setFillPattern(CellStyle.SOLID_FOREGROUND);
+		 headerCellStyle.setFillForegroundColor(IndexedColors.YELLOW.index);
+		 headerCellStyle.setFillPattern(CellStyle.SOLID_FOREGROUND);
+//закончил задавать стили
 		 int l=headers.length;
 //создаю, окрашиваю и заполняю строку заголовков
 		 Row headersRow= sheet.createRow(0);
@@ -38,11 +65,12 @@ public class XlsWriter
 		 for(int j=0; j<l; j++)
 			{
 			 headersCell[j]= headersRow.createCell(j);
-			 headersCell[j].setCellStyle( xlsDoc.createCellStyle() );
-			 setBackgroundColor(headersCell[j], IndexedColors.YELLOW.index);
+			 headersCell[j].setCellStyle(headerCellStyle);
 			 headersCell[j].setCellValue(headers[j] );
 			 }
-//создаю остальные строки
+		 headersCell[0].setCellStyle(headerLeftCellStyle);
+		 headersCell[l-1].setCellStyle(headerRightCellStyle);
+//создаю остальные строки, заполняя стандартным стилем
 		 Cell dataCell[][]= new Cell[n][];
 		 for(int i=0; i<n; i++)
 			{
@@ -51,63 +79,34 @@ public class XlsWriter
 			 for(int j=0; j<l; j++)
 				{
 				 dataCell[i][j]= row.createCell(j);
-				 dataCell[i][j].setCellStyle( xlsDoc.createCellStyle() );
+				 dataCell[i][j].setCellStyle(centerCellStyle);
 				 }
 			 }
-//рисую пол, потолок и линию под заголовками
-		 for(int j=0; j<l; j++)
+//теперь корректирую стили в зависимости от расположения в таблице
+		 if(n==0)
 			{
-			 setBorder(headersCell[j], -1,-1,6,2);
-			 if(n==0)
-				 setBorder(headersCell[j], -1,-1,-1,6);
-			 else
-				 setBorder(dataCell[n-1][j], -1,-1,-1,6);
+			 setBorder(headerCellStyle, -1,-1,-1,6);
+			 setBorder(headerLeftCellStyle, -1,-1,-1,6);
+			 setBorder(headerRightCellStyle, -1,-1,-1,6);
 			 }
+		 else
+			{
 //рисую правый и левый борт
-		 setBorder(headersCell[0], 6,-1,-1,-1);
-		 setBorder(headersCell[l-1], -1,6,-1,-1);
-		 for(int i=0; i<n; i++)
-			{
-			 setBorder(dataCell[i][0], 6,-1,-1,-1);
-			 setBorder(dataCell[i][l-1], -1,6,-1,-1);
-			 }
-//рисую горизонтальные границы
-		{
-		 int i=1;
-		 while(i<n)
-			{
-			 for(int j=0; j<l; j++)
-				 setBorder(dataCell[i][j], -1,-1,1,-1);
-			 i++;
-			 }
-		 }
-//рисую вертикальные границы
-		 for(int j=1; j<l; j++)
-			{
-			 setBorder(headersCell[j], 1,-1,-1,-1);
-			 int i=0;
-			 while(i<n)
+			 for(int i=0; i<n-1; i++)
 				{
-				 setBorder(dataCell[i][j], 1,-1,-1,-1);
-				 i++;
+				 dataCell[i][0].setCellStyle(leftCellStyle);
+				 dataCell[i][l-1].setCellStyle(rightCellStyle);
 				 }
+//рисую пол с углами
+			 int i=n-1;
+			 for(int j=0; j<l; j++)
+				 dataCell[i][j].setCellStyle(bottomCellStyle);
+			 dataCell[i][0].setCellStyle(leftBottomCellStyle);
+			 dataCell[i][l-1].setCellStyle(rightBottomCellStyle);
 			 }
 		 }
-	 public void setBackgroundColor(Cell cell, short colorIndex)
+	 public void setBorder(HSSFCellStyle style, int borderL, int borderR, int borderT, int borderB)
 		{
-		 CellStyle colorStile =cell.getCellStyle();
-		 colorStile.setFillForegroundColor(colorIndex);
-		 colorStile.setFillPattern(CellStyle.SOLID_FOREGROUND);
-		 cell.setCellStyle(colorStile);
-		 }
-//	 public static void setBorder(Workbook wb, Cell cell, CellStyle desiredStile, int borderL, int borderR, int borderT, int borderB)
-	 public void setBorder(Cell cell, int borderL, int borderR, int borderT, int borderB)
-		{
-		 CellStyle style= cell.getCellStyle();
-//		 if(desiredStile==null)
-//			 style= wb.createCellStyle();
-//		 else
-//			 style=desiredStile;
 		 if(borderB>=0)
 			 style.setBorderBottom( (short)borderB);
 		 if(borderL>=0)
@@ -116,7 +115,6 @@ public class XlsWriter
 			 style.setBorderRight( (short)borderR);
 		 if(borderT>=0)
 			 style.setBorderTop( (short)borderT);
-		 cell.setCellStyle(style);
 		 }
 	 public void writeAs_String(String data,int i,int j)
 		{
@@ -139,7 +137,9 @@ public class XlsWriter
 		{
 		 Row row= sheet.getRow(i+1);
 		 Cell cell= row.getCell(j);
-		 CellStyle style= cell.getCellStyle();
+		 HSSFCellStyle style= xlsDoc.createCellStyle();
+		 style.cloneStyleFrom(cell.getCellStyle() );
+		 cell.setCellStyle(style);
 		 DataFormat dataFormat= xlsDoc.createDataFormat();
 		 style.setDataFormat(dataFormat.getFormat("dd.mm.yy") );
 		 cell.setCellValue(data);
@@ -155,11 +155,11 @@ public class XlsWriter
 	 @SuppressWarnings("deprecation")
 	 void test() throws IOException
 		{
+		 writeAs_double(227d, 0,0);
 		 writeAs_String("0s0", 1,2);
 		 writeAs_String("s0s", 2,1);
-		 writeAs_double(227d, 0,0);
-		 writeAs_double(0.343d, 4,4);
 		 writeAs_Date(new Date(114,9,21), 3,0);
+		 writeAs_double(0.343d, 4,4);
 /*/
 		 Row row= sheet.createRow(0);
 		 Cell cell[]= new Cell[3];
