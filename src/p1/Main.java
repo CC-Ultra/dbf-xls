@@ -6,11 +6,6 @@ import java.util.*;
 
 public class Main
 {
- static String getch()
-	{
-	 Scanner scan = new Scanner(System.in);
-	 return scan.next();
-	 }
  static String[] getDirFilesList()
 	{
 	 return getDirFilesList("");
@@ -47,46 +42,69 @@ public class Main
 	 result= dbfPath.substring(0, dbfPath.lastIndexOf('.') ) +".xls";
 	 return result;
 	 }
+ static Calendar calendarDateFromIntArr(int[] dateArr)
+	{
+	 Calendar result= Calendar.getInstance();
+	 result.set(Calendar.DAY_OF_MONTH, dateArr[0] );
+	 result.set(Calendar.MONTH, dateArr[1] -1 );
+	 result.set(Calendar.YEAR, dateArr[2] +2000 );
+	 return result;
+	 }
 
  public static void main(String[] args) throws IOException
 	{
 //	 String fileadr="Исходники\\exp";
 	 String fileadr="";
 	 Scanner scan = new Scanner(System.in);
+	 String fileList[];
 
 	 if(args.length!=0)
 		{
 		 fileadr= args[0];
-		 DbfExtractor extractor= new DbfExtractor(fileadr);
-		 fileadr= dbfToXlsPath(fileadr);
-		 XlsWriter xlsWriter= new XlsWriter(extractor.headers.toStringNamesArr(), extractor.n, fileadr);
-		 System.out.println("\nПишу в файл");
-		 extractor.printAll(xlsWriter);
-		 xlsWriter.close();
-		 System.out.println("Готово");
-		 return;
+		 fileList= new String[]{fileadr};
 		 }
-
-	 String fileList[]= getDirFilesList(fileadr);
-	 if(fileList.length==0)
+	 else
 		{
-		 System.out.println(".dbf файлы не найдены");
-		 return;
+		 fileList= getDirFilesList(fileadr);
+		 if(fileList.length==0)
+			{
+			 System.out.println(".dbf файлы не найдены");
+			 return;
+			 }
 		 }
-
 	 System.out.println("Итак, в нашем распоряжении такие файлы:");
 	 for(int i=0; i<fileList.length; i++)
 		 System.out.println( (i+1) +". "+ fileList[i] );
+	 System.out.println("\nПоля, по которым будет проводиться выборка:");
+	 System.out.println("DATKV");
+	 System.out.println("DDOC");
+
 	 boolean correctInput=false;
-	 int n=0;
+	 String inputDate;
+	 Calendar requiredDate=null;
 	 while(!correctInput)
 		{
-		 System.out.println("\nВыберите сколько из них читать (или 0, если все):");
+		 System.out.println("\nВведите дату в формате \"ДД.ММ.ГГ\":");
 		 try
 			{
-			 n= scan.nextInt();
-			 if(n>=0 && n<=fileList.length)
-				 correctInput=true;
+			 inputDate= scan.next();
+			 String strDateArr[]= inputDate.split("[.]");
+			 if(strDateArr.length==3)
+				{
+				 int intDateArr[]= new int[3];
+				 if(strDateArr[0].length()>2 || strDateArr[1].length()>2 || strDateArr[2].length()>2)
+					 throw new Exception();
+				 intDateArr[0]= Integer.parseInt(strDateArr[0] );
+				 intDateArr[1]= Integer.parseInt(strDateArr[1] );
+				 intDateArr[2]= Integer.parseInt(strDateArr[2] );
+				 if(intDateArr[0]==0 || intDateArr[1]==0)
+					 throw new Exception();
+				 else
+					{
+					 requiredDate=calendarDateFromIntArr(intDateArr);
+					 correctInput=true;
+					 }
+				 }
 			 else
 				 throw new Exception();
 			 }
@@ -97,97 +115,35 @@ public class Main
 			 }
 		 }
 
-	 if(n==0)
-		{
-		 System.out.println("\nПишу в файлы...");
-		 n=fileList.length;
-		 for(int i=0; i<n; i++)
-			{
-			 fileadr=fileList[i];
-			 DbfExtractor extractor= new DbfExtractor(fileadr);
-			 fileadr= dbfToXlsPath(fileadr);
-			 XlsWriter xlsWriter= new XlsWriter(extractor.headers.toStringNamesArr(), extractor.n, fileadr);
-			 System.out.println(fileadr);
-			 extractor.printAll(xlsWriter);
-			 xlsWriter.close();
-			 }
-		 System.out.println("Готово");
-		 return;
-		 }
-
-	 int fileNums[]= new int[n];
-	 correctInput=false;
-	 while(!correctInput)
-		{
-		 System.out.println("\nВведите список файлов через пробел:");
-		 try
-			{
-			 for(int i=0; i<n; i++)
-				{
-				 fileNums[i]= scan.nextInt()-1;
-				 if( (fileNums[i]<0) || (fileNums[i] >= fileList.length) )
-					 throw new Exception();
-				 }
-			 correctInput=true;
-			 }
-		 catch(Exception inputErr)
-			{
-			 scan.nextLine();
-			 System.out.println("Некорректный ввод. Еще раз");
-			 }
-		 }
 	 System.out.println("\nПишу в файлы...");
-	 for(int i=0; i<n; i++)
-		{
-		 fileadr=fileList[fileNums[i] ];
-		 DbfExtractor extractor= new DbfExtractor(fileadr);
-		 fileadr= dbfToXlsPath(fileadr);
-		 XlsWriter xlsWriter= new XlsWriter(extractor.headers.toStringNamesArr(), extractor.n, fileadr);
-		 System.out.println(fileadr);
-		 extractor.printAll(xlsWriter);
-		 xlsWriter.close();
-		 }
-	 System.out.println("Готово");
-
-//	 Headers headers[]= new Headers[fileList.length];
-//	 ArrayList<HashSet<String> > statistic= new ArrayList<>();
-//	 DbfExtractor extractor= new DbfExtractor(fileList[6] );
-//	 System.out.println(fileList[6] );
-//	 extractor.printRecord(5);
-
-/*/
 	 for(String path : fileList)
 		{
 		 DbfExtractor extractor= new DbfExtractor(path);
+		 path= dbfToXlsPath(path);
 		 System.out.println(path);
-//			 int r=rand.nextInt(extractor.n);
+		 TreeSet<Integer> set= new TreeSet<>();
 		 for(int i=0; i<extractor.n; i++)
 			{
-			 extractor.printRecord(i);
-			 System.out.println();
+			 if(extractor.isRequiredValAt_Date(requiredDate, extractor.extractRecord(i), 1) )
+				 set.add(i);
+			 if(extractor.isRequiredValAt_Date(requiredDate, extractor.extractRecord(i), 11) )
+				 set.add(i);
 			 }
-		 System.out.println("******************\n");
-		 }
-/*/
-/*/
-	 for(int i=0; i<fileList.length; i++)
-		{
-		 System.out.println(fileList[i] );
-		 headers[i]= new Headers(fileList[i] );
-		 HashSet<String> oneFileTypes= new HashSet<>();
-		 HashSet<Character> set= new HashSet<>();
-		 for(DBFField field : headers[i].fields)
+		 if(set.size()==0)
 			{
-			 System.out.println(field.getName() +": "+ field.getType().name() +"\tdec.count: "+ field.getDecimalCount() );
-			 oneFileTypes.add(field.getType().name() );
-			 set.add( (char)(field.getType().getCode() ) );
+			 System.out.println("Записей удовлетворяющих запросу не найдено\n");
+			 continue;
 			 }
-		 System.out.println();
-		 statistic.add(oneFileTypes);
+		 else
+			{
+			 XlsWriter xlsWriter= new XlsWriter(extractor.headers.toStringNamesArr(), set.size(), path);
+			 Integer records[]= new Integer[set.size() ];
+			 records= set.toArray(records);
+			 for(int i=0; i<set.size(); i++)
+				 extractor.printRecordByIndex(xlsWriter,records[i],i);
+			 xlsWriter.close();
+			 }
 		 }
-	 System.out.println("*****************************\n");
-	 for(int i=0; i<fileList.length; i++)
-		 System.out.println(fileList[i] +"\n"+ statistic.get(i) +"\n");
-/*/
+	 System.out.println("Готово");
 	 }
  }

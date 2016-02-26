@@ -5,6 +5,7 @@ import com.linuxense.javadbf.DBFReader;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -45,6 +46,8 @@ public class DbfExtractor
 		 for(int i=0; i<index; i++)
 			 result= dbfIn.nextRecord();
 		 result= dbfIn.nextRecord();
+		 if(result==null)
+			 System.out.println("Не удалось прочесть запись "+ index +". Возможно файл поврежден");
 		 return result;
 		 }
 	 public double extractFieldAs_double(Object[] record,int position)
@@ -76,6 +79,23 @@ public class DbfExtractor
 			 result= (Date)record[position];
 		 return result;
 		 }
+
+	 boolean isRequiredValAt_Date(Calendar requiredDate,Object[] record,int position)
+		{
+		 if(record==null)
+			 return false;
+		 Date extractedDate= extractFieldAs_Date(record,position);
+		 Calendar cDate= Calendar.getInstance();
+		 cDate.setTime(extractedDate);
+		 if(cDate.get(Calendar.DAY_OF_MONTH) != requiredDate.get(Calendar.DAY_OF_MONTH) )
+			 return false;
+		 if(cDate.get(Calendar.MONTH) != requiredDate.get(Calendar.MONTH) )
+			 return false;
+		 if(cDate.get(Calendar.YEAR) != requiredDate.get(Calendar.YEAR) )
+			 return false;
+		 return true;
+		 }
+
 	 public void printRecord(XlsWriter xlsWriter, Object[] record, int xlsIndex) throws IOException
 		{
 		 for(int j=0; j<record.length; j++)
@@ -103,21 +123,8 @@ public class DbfExtractor
 		{
 		 Object record[]= extractRecord(dbfIndex);
 		 if(record==null)
-			{
-			 System.out.println("Не удалось прочесть запись "+ dbfIndex +". Внезапный конец файла. Возможно файл поврежден");
 			 return;
-			 }
 		 printRecord(xlsWriter,record,xlsIndex);
-		 }
-	 public void printN(XlsWriter xlsWriter,int nRecords) throws IOException
-		{
-		 if(nRecords>=n)
-			{
-			 printAll(xlsWriter);
-			 return;
-			 }
-		 for(int i=0; i<nRecords; i++)
-			 printRecordByIndex(xlsWriter,i,i);
 		 }
 	 public void printAll(XlsWriter xlsWriter) throws IOException
 		{
@@ -127,9 +134,10 @@ public class DbfExtractor
 			 Object record[]= dbfIn.nextRecord();
 			 if(record==null)
 				{
-				 System.out.println("Не удалось прочесть запись "+ i +". Внезапный конец файла. Возможно файл поврежден");
-				 xlsWriter.close();
-				 return;
+				 continue;
+//				 System.out.println("Не удалось прочесть запись "+ i +". Внезапный конец файла. Возможно файл поврежден");
+//				 xlsWriter.close();
+//				 return;
 				 }
 			 printRecord(xlsWriter,record,i);
 			 }

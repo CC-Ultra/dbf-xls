@@ -6,6 +6,7 @@ import org.apache.poi.ss.usermodel.*;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -190,11 +191,20 @@ public class XlsWriter
 		 close();
 		 }
 
+	 @SuppressWarnings("deprecation")
 	 public static void main(String[] args) throws IOException
 		{
-		 XlsWriter x= new XlsWriter("c:\\c123\\dbf\\test.xls");
-		 String headers[]= {"abc", "def", "12333", "4", "678905"};
-		 x.init(headers, 5);
-		 x.test();
+//		 XlsWriter x= new XlsWriter("c:\\c123\\dbf\\test.xls");
+//		 String headers[]= {"abc", "def", "12333", "4", "678905"};
+//		 x.init(headers, 5);
+//		 x.test();
+		 Calendar x= Calendar.getInstance();
+//		 x.setTime(new Date(114,11,21) );
+		 x.set(Calendar.YEAR,2014);
+		 x.set(Calendar.MONTH,-1);
+		 x.set(Calendar.DAY_OF_MONTH,21);
+		 System.out.println("Year:\t"+ x.get(Calendar.YEAR) );
+		 System.out.println("Month:\t"+ (x.get(Calendar.MONTH)+1) );
+		 System.out.println("Day:\t"+ x.get(Calendar.DAY_OF_MONTH) );
 		 }
 	 }
