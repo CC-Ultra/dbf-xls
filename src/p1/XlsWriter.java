@@ -105,6 +105,11 @@ public class XlsWriter
 			 dataCell[i][0].setCellStyle(leftBottomCellStyle);
 			 dataCell[i][l-1].setCellStyle(rightBottomCellStyle);
 			 }
+		 for(int i=0; i<n; i++)
+			{
+			 writeAs_double( (i+1), i,0);
+			 writeAs_double(DbfExtractor.EMPTY_NUM, i,14);
+			 }
 		 }
 	 public void setBorder(HSSFCellStyle style, int borderL, int borderR, int borderT, int borderB)
 		{
@@ -128,7 +133,7 @@ public class XlsWriter
 		{
 		 Row row= sheet.getRow(i+1);
 		 Cell cell= row.getCell(j);
-		 if(data==-50000000d)
+		 if(data==DbfExtractor.EMPTY_NUM)
 			 cell.setCellValue( (String)null);
 		 else
 			 cell.setCellValue(data);

@@ -18,6 +18,8 @@ public class DbfExtractor
 	 Headers headers;
 	 int n;
 
+	 public static final double EMPTY_NUM=-50000000d;
+
 	 @SuppressWarnings("deprecation")
 	 public DbfExtractor(String _filepath)
 		{
@@ -52,7 +54,7 @@ public class DbfExtractor
 		 }
 	 public double extractFieldAs_double(Object[] record,int position)
 		{
-		 double result=-50000000d;
+		 double result=EMPTY_NUM;
 		 if(record[position]!=null)
 			 result= (double)record[position];
 		 return result;

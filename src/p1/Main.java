@@ -53,97 +53,82 @@ public class Main
 
  public static void main(String[] args) throws IOException
 	{
-//	 String fileadr="Исходники\\exp";
-	 String fileadr="";
-	 Scanner scan = new Scanner(System.in);
+//	 String dirPath="Исходники\\exp";
+	 String dirPath="";
+//	 Scanner scan= new Scanner(System.in);
+	 Doer istFragment=null, itFragment=null, iztFragment=null;
 	 String fileList[];
 
-	 if(args.length!=0)
-		{
-		 fileadr= args[0];
-		 fileList= new String[]{fileadr};
-		 }
-	 else
-		{
-		 fileList= getDirFilesList(fileadr);
-		 if(fileList.length==0)
-			{
-			 System.out.println(".dbf файлы не найдены");
-			 return;
-			 }
-		 }
+	 fileList= getDirFilesList(dirPath);
 	 System.out.println("Итак, в нашем распоряжении такие файлы:");
 	 for(int i=0; i<fileList.length; i++)
-		 System.out.println( (i+1) +". "+ fileList[i] );
-	 System.out.println("\nПоля, по которым будет проводиться выборка:");
-	 System.out.println("DATKV");
-	 System.out.println("DDOC");
-
-	 boolean correctInput=false;
-	 String inputDate;
-	 Calendar requiredDate=null;
-	 while(!correctInput)
 		{
-		 System.out.println("\nВведите дату в формате \"ДД.ММ.ГГ\":");
-		 try
+		 System.out.println( (i+1) +". "+ fileList[i] );
+		 if(fileList[i].contains("ist") )
+			 istFragment= new Doer(fileList[i], new int[]{2,1,-1,4,5,6}, new int[]{1,2,3}, Doer.CONVERTER_TYPE_IST);
+		 if(fileList[i].contains("it") )
+			 itFragment= new Doer(fileList[i], new int[]{4,6,7,8,9,7}, new int[]{4,5,6,7,8,9}, Doer.CONVERTER_TYPE_IT);
+		 if(fileList[i].contains("izt") )
+			 iztFragment= new Doer(fileList[i], new int[]{5,11,12,-1,10,15}, new int[]{10,11,12,13}, Doer.CONVERTER_TYPE_IZT);
+		 }
+	 if(istFragment==null || itFragment==null || iztFragment==null)
+		{
+		 System.out.println("\nНе найдены все файлы. Продолжение невозможно");
+		 System.exit(1);
+		 }
+	 System.out.println("\nКлючевое поле выборки: NKV\n");
+	 int keyFieldIndex=2;
+
+	 System.out.println("Анализ...");
+	 HashMap<Object,ArrayList<Integer> > indexMap[]= new HashMap[3];
+	 for(int i=0; i<istFragment.extractor.n; i++)
+		{
+		 Object istRecord[]= istFragment.extractor.extractRecord(i);
+		 for(int j=0; j<itFragment.extractor.n; j++)
 			{
-			 inputDate= scan.next();
-			 String strDateArr[]= inputDate.split("[.]");
-			 if(strDateArr.length==3)
+			 Object itRecord[]= itFragment.extractor.extractRecord(j);
+			 for(int k=0; k<iztFragment.extractor.n; k++)
 				{
-				 int intDateArr[]= new int[3];
-				 if(strDateArr[0].length()>2 || strDateArr[1].length()>2 || strDateArr[2].length()>2)
-					 throw new Exception();
-				 intDateArr[0]= Integer.parseInt(strDateArr[0] );
-				 intDateArr[1]= Integer.parseInt(strDateArr[1] );
-				 intDateArr[2]= Integer.parseInt(strDateArr[2] );
-				 if(intDateArr[0]==0 || intDateArr[1]==0)
-					 throw new Exception();
-				 else
+				 Object iztRecord[]= iztFragment.extractor.extractRecord(k);
+				 if(istRecord[keyFieldIndex].equals(itRecord[keyFieldIndex] ) && istRecord[keyFieldIndex].equals(iztRecord[keyFieldIndex] ) )
 					{
-					 requiredDate=calendarDateFromIntArr(intDateArr);
-					 correctInput=true;
+					 if(istFragment.indexMap.containsKey(istRecord[keyFieldIndex] ) )
+						{
+						 istFragment.updateIndexMap(istRecord[keyFieldIndex],i);
+						 itFragment.updateIndexMap(itRecord[keyFieldIndex],j);
+						 iztFragment.updateIndexMap(iztRecord[keyFieldIndex],k);
+						 }
+					 else
+						{
+						 istFragment.indexMap.put(istRecord[keyFieldIndex], new ArrayList<>() );
+						 itFragment.indexMap.put(itRecord[keyFieldIndex], new ArrayList<>() );
+						 iztFragment.indexMap.put(iztRecord[keyFieldIndex], new ArrayList<>() );
+						 istFragment.updateIndexMap(istRecord[keyFieldIndex],i);
+						 itFragment.updateIndexMap(itRecord[keyFieldIndex],j);
+						 iztFragment.updateIndexMap(iztRecord[keyFieldIndex],k);
+						 }
 					 }
 				 }
-			 else
-				 throw new Exception();
-			 }
-		 catch(Exception inputErr)
-			{
-			 scan.nextLine();
-			 System.out.println("Некорректный ввод. Еще раз");
 			 }
 		 }
+	 int xlsN=0;
+	 for(Map.Entry<Object,ArrayList<Integer> > x : istFragment.indexMap.entrySet() )
+		 xlsN+= x.getValue().size();
+	 String headers[]=
+			{
+				"п/п", "№ договора", "Дата договора",
+				"Ф.И.О.", "Наименование изделия", "Проба",
+				"Цена 1 грамма", "Вес изделия", "Вес чистый",
+				"Оценочная стоимость", "Сумма кредита выданного", "Дата выдачи кредита",
+				"Сумма кредита возвращенного", "Сумма процентов и пени", "Сумма общая"
+			 };
 
-	 System.out.println("\nПишу в файлы...");
-	 for(String path : fileList)
-		{
-		 DbfExtractor extractor= new DbfExtractor(path);
-		 path= dbfToXlsPath(path);
-		 System.out.println(path);
-		 TreeSet<Integer> set= new TreeSet<>();
-		 for(int i=0; i<extractor.n; i++)
-			{
-			 if(extractor.isRequiredValAt_Date(requiredDate, extractor.extractRecord(i), 1) )
-				 set.add(i);
-			 if(extractor.isRequiredValAt_Date(requiredDate, extractor.extractRecord(i), 11) )
-				 set.add(i);
-			 }
-		 if(set.size()==0)
-			{
-			 System.out.println("Записей удовлетворяющих запросу не найдено\n");
-			 continue;
-			 }
-		 else
-			{
-			 XlsWriter xlsWriter= new XlsWriter(extractor.headers.toStringNamesArr(), set.size(), path);
-			 Integer records[]= new Integer[set.size() ];
-			 records= set.toArray(records);
-			 for(int i=0; i<set.size(); i++)
-				 extractor.printRecordByIndex(xlsWriter,records[i],i);
-			 xlsWriter.close();
-			 }
-		 }
+	 System.out.println("Запись...");
+	 XlsWriter resultXls= new XlsWriter(headers,xlsN,"Result.xls");
+	 istFragment.writeToXls(resultXls);
+	 itFragment.writeToXls(resultXls);
+	 iztFragment.writeToXls(resultXls);
+	 resultXls.close();
 	 System.out.println("Готово");
 	 }
  }
