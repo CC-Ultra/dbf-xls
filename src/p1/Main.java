@@ -37,7 +37,7 @@ public class Main
 	 return result;
 	 }
  static String dbfToXlsPath(String dbfPath)
-	{
+	{//
 	 String result;
 	 result= dbfPath.substring(0, dbfPath.lastIndexOf('.') ) +".xls";
 	 return result;
@@ -80,7 +80,6 @@ public class Main
 	 int keyFieldIndex=2;
 
 	 System.out.println("Анализ...");
-	 HashMap<Object,ArrayList<Integer> > indexMap[]= new HashMap[3];
 	 for(int i=0; i<istFragment.extractor.n; i++)
 		{
 		 Object istRecord[]= istFragment.extractor.extractRecord(i);
