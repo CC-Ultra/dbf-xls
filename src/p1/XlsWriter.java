@@ -105,11 +105,9 @@ public class XlsWriter
 			 dataCell[i][0].setCellStyle(leftBottomCellStyle);
 			 dataCell[i][l-1].setCellStyle(rightBottomCellStyle);
 			 }
+//заполняю перое поле счетчиком
 		 for(int i=0; i<n; i++)
-			{
 			 writeAs_double( (i+1), i,0);
-			 writeAs_double(DbfExtractor.EMPTY_NUM, i,14);
-			 }
 		 }
 	 public void setBorder(HSSFCellStyle style, int borderL, int borderR, int borderT, int borderB)
 		{
@@ -126,7 +124,7 @@ public class XlsWriter
 		{
 		 Row row= sheet.getRow(i+1);
 		 Cell cell= row.getCell(j);
-		 cell.setCellValue(data);
+		 cell.setCellValue(data.trim() );
 		 sheet.autoSizeColumn(j);
 		 }
 	 public void writeAs_double(double data,int i,int j)

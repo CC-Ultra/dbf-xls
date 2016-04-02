@@ -37,7 +37,7 @@ public class Main
 	 return result;
 	 }
  static String dbfToXlsPath(String dbfPath)
-	{//
+	{
 	 String result;
 	 result= dbfPath.substring(0, dbfPath.lastIndexOf('.') ) +".xls";
 	 return result;
@@ -56,7 +56,7 @@ public class Main
 //	 String dirPath="Исходники\\exp";
 	 String dirPath="";
 //	 Scanner scan= new Scanner(System.in);
-	 Doer istFragment=null, itFragment=null, iztFragment=null;
+	 Doer stFragment=null, tFragment=null, ztFragment=null;
 	 String fileList[];
 
 	 fileList= getDirFilesList(dirPath);
@@ -64,14 +64,14 @@ public class Main
 	 for(int i=0; i<fileList.length; i++)
 		{
 		 System.out.println( (i+1) +". "+ fileList[i] );
-		 if(fileList[i].contains("ist") )
-			 istFragment= new Doer(fileList[i], new int[]{2,1,-1,4,5,6}, new int[]{1,2,3}, Doer.CONVERTER_TYPE_IST);
-		 if(fileList[i].contains("it") )
-			 itFragment= new Doer(fileList[i], new int[]{4,6,7,8,9,7}, new int[]{4,5,6,7,8,9}, Doer.CONVERTER_TYPE_IT);
-		 if(fileList[i].contains("izt") )
-			 iztFragment= new Doer(fileList[i], new int[]{5,11,12,-1,10,15}, new int[]{10,11,12,13}, Doer.CONVERTER_TYPE_IZT);
-		 }
-	 if(istFragment==null || itFragment==null || iztFragment==null)
+		 if(fileList[i].contains("_st") )
+			 stFragment= new Doer(fileList[i], new int[]{2,1,4,5,6}, new int[]{2,3,4,5,6}, Doer.CONVERTER_TYPE_ST);
+		 if(fileList[i].contains("_t") )
+			 tFragment= new Doer(fileList[i], new int[]{4,6,7,8,9}, new int[]{7,8,9,10,11}, Doer.CONVERTER_TYPE_T);
+		 if(fileList[i].contains("_zt") )
+			 ztFragment= new Doer(fileList[i], new int[]{5,11,21,-1,5,10,15}, new int[]{12,13,16}, Doer.CONVERTER_TYPE_ZT);
+		}
+	 if(stFragment==null || tFragment==null || ztFragment==null)
 		{
 		 System.out.println("\nНе найдены все файлы. Продолжение невозможно");
 		 System.exit(1);
@@ -80,53 +80,47 @@ public class Main
 	 int keyFieldIndex=2;
 
 	 System.out.println("Анализ...");
-	 for(int i=0; i<istFragment.extractor.n; i++)
+	 for(int i=0; i<stFragment.extractor.n; i++)
 		{
-		 Object istRecord[]= istFragment.extractor.extractRecord(i);
-		 for(int j=0; j<itFragment.extractor.n; j++)
+		 Object istRecord[]= stFragment.extractor.extractRecord(i);
+		 for(int j=0; j<tFragment.extractor.n; j++)
 			{
-			 Object itRecord[]= itFragment.extractor.extractRecord(j);
-			 for(int k=0; k<iztFragment.extractor.n; k++)
+			 Object itRecord[]= tFragment.extractor.extractRecord(j);
+			 for(int k=0; k<ztFragment.extractor.n; k++)
 				{
-				 Object iztRecord[]= iztFragment.extractor.extractRecord(k);
+				 Object iztRecord[]= ztFragment.extractor.extractRecord(k);
 				 if(istRecord[keyFieldIndex].equals(itRecord[keyFieldIndex] ) && istRecord[keyFieldIndex].equals(iztRecord[keyFieldIndex] ) )
 					{
-					 if(istFragment.indexMap.containsKey(istRecord[keyFieldIndex] ) )
+					 if(!stFragment.indexMap.containsKey(istRecord[keyFieldIndex] ) )
 						{
-						 istFragment.updateIndexMap(istRecord[keyFieldIndex],i);
-						 itFragment.updateIndexMap(itRecord[keyFieldIndex],j);
-						 iztFragment.updateIndexMap(iztRecord[keyFieldIndex],k);
+						 stFragment.indexMap.put(istRecord[keyFieldIndex], new ArrayList<>() );
+						 tFragment.indexMap.put(itRecord[keyFieldIndex], new ArrayList<>() );
+						 ztFragment.indexMap.put(iztRecord[keyFieldIndex], new ArrayList<>() );
 						 }
-					 else
-						{
-						 istFragment.indexMap.put(istRecord[keyFieldIndex], new ArrayList<>() );
-						 itFragment.indexMap.put(itRecord[keyFieldIndex], new ArrayList<>() );
-						 iztFragment.indexMap.put(iztRecord[keyFieldIndex], new ArrayList<>() );
-						 istFragment.updateIndexMap(istRecord[keyFieldIndex],i);
-						 itFragment.updateIndexMap(itRecord[keyFieldIndex],j);
-						 iztFragment.updateIndexMap(iztRecord[keyFieldIndex],k);
-						 }
+					 stFragment.updateIndexMap(istRecord[keyFieldIndex],i);
+					 tFragment.updateIndexMap(itRecord[keyFieldIndex],j);
+					 ztFragment.updateIndexMap(iztRecord[keyFieldIndex],k);
 					 }
 				 }
 			 }
 		 }
 	 int xlsN=0;
-	 for(Map.Entry<Object,ArrayList<Integer> > x : istFragment.indexMap.entrySet() )
+	 for(Map.Entry<Object,ArrayList<Integer> > x : stFragment.indexMap.entrySet() )
 		 xlsN+= x.getValue().size();
 	 String headers[]=
 			{
-				"п/п", "№ договора", "Дата договора",
-				"Ф.И.О.", "Наименование изделия", "Проба",
-				"Цена 1 грамма", "Вес изделия", "Вес чистый",
-				"Оценочная стоимость", "Сумма кредита выданного", "Дата выдачи кредита",
-				"Сумма кредита возвращенного", "Сумма процентов и пени", "Сумма общая"
+				"Номер", "Тип операции", "Номер договора", "Дата договора",
+				"Фамилия", "Имя", "Отчество", "Наименование изделия",
+				"Проба", "Цена за грамм", "Вес", "Вес чистый",
+				"Сумма кредита", "Дата выдачи", "Сумма возвращенная",
+				"Процент + пеня", "Изделие в ломбарде (дней)"
 			 };
 
 	 System.out.println("Запись...");
 	 XlsWriter resultXls= new XlsWriter(headers,xlsN,"Result.xls");
-	 istFragment.writeToXls(resultXls);
-	 itFragment.writeToXls(resultXls);
-	 iztFragment.writeToXls(resultXls);
+	 stFragment.writeToXls(resultXls);
+	 tFragment.writeToXls(resultXls);
+	 ztFragment.writeToXls(resultXls);
 	 resultXls.close();
 	 System.out.println("Готово");
 	 }
