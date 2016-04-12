@@ -8,7 +8,7 @@ import java.util.HashMap;
 /**
  * Created by snayper on 08.03.2016.
  */
-public class Doer
+public class Actor
 	{
 	 String filePath;
 	 HashMap<Object, ArrayList<Integer> > indexMap= new HashMap<>();
@@ -143,7 +143,7 @@ public class Doer
 			 }
 		 }
 
-	 Doer(String _filePath,int[] _dbfFields,int[] _xlsFields,int _converterType)
+	 Actor(String _filePath,int[] _dbfFields,int[] _xlsFields,int _converterType)
 		{
 		 converterType=_converterType;
 		 filePath=_filePath;
@@ -200,32 +200,40 @@ public class Doer
 		 ArrayList< ArrayList<Integer> > indexLists= new ArrayList<>(indexMap.values() );
 		 int i=0;
 		 for(ArrayList<Integer> indexList : indexLists)
-			 for(int index : indexList)
-				{
-				 Object record[]= extractor.extractRecord(index);
-				 ArrayList<Object> fieldsData;
-				 fieldsData= converter.convert(record);
-				 ArrayList<Object> specials=new ArrayList<>(fieldsData.subList(xlsFields.length, fieldsData.size() ) );
+			{
+			 if(indexList.isEmpty() )
 				 for(int j=0; j<xlsFields.length; j++)
+					 xlsWriter.writeAs_double(DbfExtractor.EMPTY_NUM, i, xlsFields[j] );
+			 else
+				{
+				 for(int index : indexList)
 					{
-					 char fieldType= (char)extractor.headers.fields[dbfFieldsUpdated[j] ].getType().getCode();
-					 switch(fieldType)
+					 Object record[]= extractor.extractRecord(index);
+					 ArrayList<Object> fieldsData;
+					 fieldsData= converter.convert(record);
+					 ArrayList<Object> specials=new ArrayList<>(fieldsData.subList(xlsFields.length, fieldsData.size() ) );
+					 for(int j=0; j<xlsFields.length; j++)
 						{
-						 case 'C':
-							 xlsWriter.writeAs_String(fieldsData.get(j).toString(), i, xlsFields[j] );
-							 break;
-						 case 'N':
-							 xlsWriter.writeAs_double( (double)fieldsData.get(j), i, xlsFields[j] );
-							 break;
-						 case 'D':
-							 xlsWriter.writeAs_Date( (Date)fieldsData.get(j), i, xlsFields[j] );
-							 break;
-						 default:
-							 xlsWriter.writeAs_String("null", i, xlsFields[j] );
+						 char fieldType= (char)extractor.headers.fields[dbfFieldsUpdated[j] ].getType().getCode();
+						 switch(fieldType)
+							 {
+							 case 'C':
+								 xlsWriter.writeAs_String(fieldsData.get(j).toString(), i, xlsFields[j] );
+								 break;
+							 case 'N':
+								 xlsWriter.writeAs_double( (double)fieldsData.get(j), i, xlsFields[j] );
+								 break;
+							 case 'D':
+								 xlsWriter.writeAs_Date( (Date)fieldsData.get(j), i, xlsFields[j] );
+								 break;
+							 default:
+								 xlsWriter.writeAs_String("null", i, xlsFields[j] );
+							 }
 						 }
+					 putSpecialFields(xlsWriter,specials,i);
 					 }
-				 putSpecialFields(xlsWriter,specials,i);
-				 i++;
 				 }
+			i++;
+			}
 		 }
 	 }

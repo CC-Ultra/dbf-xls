@@ -56,7 +56,7 @@ public class Main
 //	 String dirPath="Исходники\\exp";
 	 String dirPath="";
 //	 Scanner scan= new Scanner(System.in);
-	 Doer stFragment=null, tFragment=null, ztFragment=null;
+	 Actor stFragment=null, tFragment=null, ztFragment=null;
 	 String fileList[];
 
 	 fileList= getDirFilesList(dirPath);
@@ -65,11 +65,11 @@ public class Main
 		{
 		 System.out.println( (i+1) +". "+ fileList[i] );
 		 if(fileList[i].contains("_st") )
-			 stFragment= new Doer(fileList[i], new int[]{2,1,4,5,6}, new int[]{2,3,4,5,6}, Doer.CONVERTER_TYPE_ST);
+			 stFragment= new Actor(fileList[i], new int[]{1,4,5,6}, new int[]{3,4,5,6}, Actor.CONVERTER_TYPE_ST);
 		 if(fileList[i].contains("_t") )
-			 tFragment= new Doer(fileList[i], new int[]{4,6,7,8,9}, new int[]{7,8,9,10,11}, Doer.CONVERTER_TYPE_T);
+			 tFragment= new Actor(fileList[i], new int[]{4,6,7,8,9}, new int[]{7,8,9,10,11}, Actor.CONVERTER_TYPE_T);
 		 if(fileList[i].contains("_zt") )
-			 ztFragment= new Doer(fileList[i], new int[]{5,11,21,-1,5,10,15}, new int[]{12,13,16}, Doer.CONVERTER_TYPE_ZT);
+			 ztFragment= new Actor(fileList[i], new int[]{2,1,5,11,21,-1,5,10,15}, new int[]{2,3,12,13,16}, Actor.CONVERTER_TYPE_ZT);
 		}
 	 if(stFragment==null || tFragment==null || ztFragment==null)
 		{
@@ -80,32 +80,36 @@ public class Main
 	 int keyFieldIndex=2;
 
 	 System.out.println("Анализ...");
-	 for(int i=0; i<stFragment.extractor.n; i++)
+	 for(int i=0; i<ztFragment.extractor.n; i++)
 		{
-		 Object istRecord[]= stFragment.extractor.extractRecord(i);
+		 boolean sometingFound=false;
+		 Object ztRecord[]= ztFragment.extractor.extractRecord(i);
+		 Object ztKeyField= ztRecord[keyFieldIndex];
+		 ztFragment.indexMap.put(ztKeyField, new ArrayList<>() );
+		 tFragment.indexMap.put(ztKeyField, new ArrayList<>() );
+		 stFragment.indexMap.put(ztKeyField, new ArrayList<>() );
 		 for(int j=0; j<tFragment.extractor.n; j++)
 			{
-			 Object itRecord[]= tFragment.extractor.extractRecord(j);
-			 for(int k=0; k<ztFragment.extractor.n; k++)
+			 Object tRecord[]= tFragment.extractor.extractRecord(j);
+			 Object tKeyField= tRecord[keyFieldIndex];
+			 for(int k=0; k<stFragment.extractor.n; k++)
 				{
-				 Object iztRecord[]= ztFragment.extractor.extractRecord(k);
-				 if(istRecord[keyFieldIndex].equals(itRecord[keyFieldIndex] ) && istRecord[keyFieldIndex].equals(iztRecord[keyFieldIndex] ) )
+				 Object stRecord[]= stFragment.extractor.extractRecord(k);
+				 Object stKeyField= stRecord[keyFieldIndex];
+				 if(ztKeyField.equals(tKeyField) && ztKeyField.equals(stKeyField) )
 					{
-					 if(!stFragment.indexMap.containsKey(istRecord[keyFieldIndex] ) )
-						{
-						 stFragment.indexMap.put(istRecord[keyFieldIndex], new ArrayList<>() );
-						 tFragment.indexMap.put(itRecord[keyFieldIndex], new ArrayList<>() );
-						 ztFragment.indexMap.put(iztRecord[keyFieldIndex], new ArrayList<>() );
-						 }
-					 stFragment.updateIndexMap(istRecord[keyFieldIndex],i);
-					 tFragment.updateIndexMap(itRecord[keyFieldIndex],j);
-					 ztFragment.updateIndexMap(iztRecord[keyFieldIndex],k);
+					 sometingFound=true;
+					 ztFragment.updateIndexMap(ztKeyField,i);
+					 tFragment.updateIndexMap(tKeyField,j);
+					 stFragment.updateIndexMap(stKeyField,k);
 					 }
 				 }
 			 }
+		 if(!sometingFound)
+			 ztFragment.updateIndexMap(ztKeyField,i);
 		 }
 	 int xlsN=0;
-	 for(Map.Entry<Object,ArrayList<Integer> > x : stFragment.indexMap.entrySet() )
+	 for(Map.Entry<Object,ArrayList<Integer> > x : ztFragment.indexMap.entrySet() )
 		 xlsN+= x.getValue().size();
 	 String headers[]=
 			{
